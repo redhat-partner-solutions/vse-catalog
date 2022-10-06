@@ -1,0 +1,12 @@
+---
+apiVersion: ptp.openshift.io/v1
+kind: PtpOperatorConfig
+metadata:
+  name: default
+  namespace: openshift-ptp
+spec:
+  daemonNodeSelector:
+    node-role.kubernetes.io/worker-cnf: ""
+  ptpEventConfig:
+    enableEventPublisher: true
+    transportHost: amqp://amq-interconnect.openshift-ptp.svc.cluster.local
