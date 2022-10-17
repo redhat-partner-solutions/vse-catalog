@@ -7,3 +7,6 @@ resources:
   - list-directory.yaml
   - send-to-gchat.yaml
   - write-file.yaml
+  - get-kubeconfig.yaml
+  - buildah.yaml
+  - set-tag.yaml
