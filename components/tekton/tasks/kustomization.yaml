@@ -10,3 +10,4 @@ resources:
   - get-kubeconfig.yaml
   - buildah.yaml
   - set-tag.yaml
+  - deploy-gotests.yaml
