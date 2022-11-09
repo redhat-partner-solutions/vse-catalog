@@ -1,0 +1,81 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: run-test-suite-from-image
+spec:
+  description: >-
+    Run-testsuite-from-image base pipeline runs a specific testsuite from
+    a base image containing the software with the specific test suites.
+    The pipeline will abstract the OCP cluster specifics so that it is able to
+    run on multiple sites and in any cluster modality
+    (e.g., SNO or three-compact cluster node).
+  params:
+    - name: TESTS_IMAGE
+      type: string
+      # yamllint disable rule:line-length
+      default: image-registry.openshift-image-registry.svc:5000/openshift/cnf-gotests
+      description: |
+        The image used to run the tests. This can be a base image,
+        or an image that already has pre-requirements installed.
+      # yamllint enable rule:line-length
+    - name: FEATURE
+      default: "sriov"
+    - name: CLUSTER_NAME
+    - name: NAMESPACE
+    - name: NOTIF_URL
+    - name: MESSAGE
+  tasks:
+    - name: send-notification
+      taskRef:
+        name: send-to-gchat-space
+        kind: Task
+      params:
+        - name: webhook-url
+          value: $(params.NOTIF_URL)
+        - name: message
+          value: "start test suite run from image..."
+    - name: get-kubeconfig
+      taskRef:
+        name: get-kubeconfig
+        kind: Task
+      runAfter:
+        - send-notification
+      params:
+        - name: cluster-name
+          value: $(params.CLUSTER_NAME)
+      workspaces:
+        - name: kubeconfigs
+          workspace: pipeline-ws
+    - name: run-suite
+      taskRef:
+        name: deploy-gotests
+        kind: Task
+      runAfter:
+        - get-kubeconfig
+      params:
+        - name: IMAGE
+          value: $(params.TESTS_IMAGE)
+        - name: FEATURE
+          value: $(params.FEATURE)
+        - name: CLUSTER_NAME
+          value: $(params.CLUSTER_NAME)
+        - name: NAMESPACE
+          value: $(params.NAMESPACE)
+      workspaces:
+        - name: kubeconfig
+          workspace: pipeline-ws
+    - name: send-report
+      taskRef:
+        name: send-to-gchat-space
+        kind: Task
+      runAfter:
+        - run-suite
+      params:
+        - name: webhook-url
+          value: $(params.NOTIF_URL)
+        - name: message
+          value: $(params.MESSAGE)
+  workspaces:
+    - description: Shared data in this pipeline
+      name: pipeline-ws

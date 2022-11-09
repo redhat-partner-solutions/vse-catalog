@@ -1,0 +1,7 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ./build-image-from-git-repo/build-image-from-git-repo.yaml
+  - ./run-testsuite-from-image/run-testsuite-from-image.yaml

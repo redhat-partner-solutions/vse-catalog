@@ -1,0 +1,98 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: build-image-from-git-repo
+  labels:
+    app.kubernetes.io/version: '0.1'
+  annotations:
+    tekton.dev/pipelines.minVersion: '0.12.1'
+    tekton.dev/tags: build, push, tag
+    tekton.dev/platforms: "linux/amd64"
+spec:
+  description: >-
+    The build-image pipeline builds source code from a Git repository into
+    a container image and pushes it to a registry.
+    The source code repo MUST include a filename with a Containerfile
+    to build the image from scratch.
+
+  params:
+    - name: GIT_REPO
+      type: string
+      description: The clonable repo source where the source repo lives.
+      default: git@github.com:redhat-partner-solutions/cnf-gotests.git
+    - name: GIT_REF
+      type: string
+      description: The git revision to checkout (branch, tag, sha, ref…).
+      default: vran_enablement
+    - name: SRC_CONTAINERFILE
+      type: string
+      description: path to the dockerfile to use.
+      default: Dockerfile
+    - name: IMAGE_DEST
+      type: string
+      description: Base destination image repo url.
+      # yamllint disable rule:line-length
+      default: image-registry.openshift-image-registry.svc:5000/openshift/cnf-gotests
+      # yamllint enable rule:line-length
+  tasks:
+    - name: clone-repo
+      params:
+        - name: url
+          value: $(params.GIT_REPO)
+        - name: revision
+          value: $(params.GIT_REF)
+      taskRef:
+        name: git-clone
+        kind: Task
+      workspaces:
+        - name: output
+          workspace: pipeline-ws
+    - name: set-image-tag
+      params:
+        - name: commit
+          value: $(tasks.clone-repo.results.commit)
+        - name: url
+          value: $(tasks.clone-repo.results.url)
+        - name: imagestream
+          value: $(params.IMAGE_DEST)
+      taskRef:
+        name: set-tag
+      runAfter:
+        - clone-repo
+      workspaces:
+        - name: tagput
+          workspace: pipeline-ws
+    - name: build-n-push
+      params:
+        - name: IMAGE
+          value: $(tasks.set-image-tag.results.tag)
+        - name: CONTAINERFILE
+          value: $(workspaces.source.path)/$(params.SRC_CONTAINERFILE)
+        - name: CONTEXT
+          value: $(workspaces.source.path)
+      taskRef:
+        name: buildah
+        kind: Task
+      runAfter:
+        - set-image-tag
+      workspaces:
+        - name: source
+          workspace: pipeline-ws
+    - name: tag-to-latest
+      params:
+        - name: srcImageURL
+          value: docker://$(tasks.set-image-tag.results.tag)
+        - name: destImageURL
+          value: docker://$(params.IMAGE_DEST):latest
+      taskRef:
+        name: skopeo-copy
+        kind: ClusterTask
+      runAfter:
+        - build-n-push
+      workspaces:
+        - name: images-url
+          workspace: pipeline-ws
+  workspaces:
+    - description: Shared data in this pipeline
+      name: pipeline-ws
