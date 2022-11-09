@@ -1,0 +1,67 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: deploy-gotests
+  labels:
+    app.kubernetes.io/version: "0.1"
+  annotations:
+    tekton.dev/categories: Testing
+    tekton.dev/pipelines.minVersion: "0.12.1"
+    tekton.dev/tags: golang, gotests
+    tekton.dev/displayName: vse-framework
+    tekton.dev/platforms: "linux/amd64"
+spec:
+  description: >-
+    Task for demoing and testing purposes ONLY.
+    This task will run gotest suite specified by FEATURE on a CLUSTER.
+    Requires a kubeconfig of a cluster with two worker nodes with
+    SR-IOV and PTP capable NICs.
+    This task should be decomposed in simpler tasks.
+    Available features supported now in this task is only SR-IOV .
+  params:
+    - name: CLUSTER_NAME
+      type: string
+    - name: NAMESPACE
+      type: string
+    - name: IMAGE
+      type: string
+    - name: NODE1
+      type: string
+    - name: NODE2
+      type: string
+    - name: FEATURE
+      type: string
+    - name: INTERFACE_LIST
+      type: string
+  steps:
+    - name: run-suite
+      image: $(inputs.params.IMAGE)
+      # yamllint disable rule:line-length
+      resources:
+        requests:
+          cpu: "2000m"
+        limits:
+          cpu: "4000m"
+      script: |
+        export PATH=$PATH:$HOME/go/bin
+        export CGO_ENABLED=0
+        echo '$(workspaces.kubeconfigs.path)/$(params.CLUSTER_NAME)'
+        export KUBECONFIG='$(workspaces.kubeconfigs.path)/$(params.CLUSTER_NAME)'
+        oc patch sriovoperatorconfig default --type=json -n openshift-sriov-network-operator --patch '[{"op": "replace", "path": "/spec/configDaemonNodeSelector", "value": {"node-role.kubernetes.io/worker-cnf": ""} }]'
+        export GOPROXY="https://goproxy.io,direct"
+        cd app
+        make install || true
+        export CNF_INTERFACES_LIST=$(params.INTERFACE_LIST)
+        export FEATURES=$(params.FEATURE)
+        export CNF_GOTESTS_SRIOV_SMOKE="true"
+        export CNF_GOTESTS_SRIOV_REINSTALL="false"
+        oc label node $(params.NODE1) node-role.kubernetes.io/worker-cnf= --overwrite
+        oc label node $(params.NODE2) node-role.kubernetes.io/worker-cnf= --overwrite
+        oc create ns sriov-operator-tests || true
+        ./hack/install-ginkgo.sh
+        make test-features || true
+       # yamllint disable rule:line-length
+  workspaces:
+    - description: Shared data to read kubeconfigs
+      name: kubeconfigs
