@@ -2,12 +2,19 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
+namespace: vse-cicd-catalog
+
+commonAnnotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    argocd.argoproj.io/sync-wave: "1"
+
 resources:
-  - git-clone.yaml
-  - list-directory.yaml
-  - send-to-gchat.yaml
-  - write-file.yaml
-  - get-kubeconfig.yaml
-  - buildah.yaml
-  - set-tag.yaml
-  - deploy-gotests.yaml
+    - catalog-ns.yaml
+    - git-clone.yaml
+    - list-directory.yaml
+    - send-to-gchat.yaml
+    - write-file.yaml
+    - get-kubeconfig.yaml
+    - buildah.yaml
+    - set-tag.yaml
+    - deploy-gotests.yaml

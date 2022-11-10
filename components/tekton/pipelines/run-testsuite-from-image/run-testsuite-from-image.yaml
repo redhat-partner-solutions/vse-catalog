@@ -25,6 +25,9 @@ spec:
     - name: NAMESPACE
     - name: NOTIF_URL
     - name: MESSAGE
+    - name: WORKER1
+    - name: WORKER2
+    - name: INTERFACES
   tasks:
     - name: send-notification
       taskRef:
@@ -62,8 +65,14 @@ spec:
           value: $(params.CLUSTER_NAME)
         - name: NAMESPACE
           value: $(params.NAMESPACE)
+        - name: NODE1
+          value: $(params.WORKER1)
+        - name: NODE2
+          value: $(params.WORKER2)
+        - name: INTERFACE_LIST
+          value: $(params.INTERFACES)
       workspaces:
-        - name: kubeconfig
+        - name: kubeconfigs
           workspace: pipeline-ws
     - name: send-report
       taskRef:
