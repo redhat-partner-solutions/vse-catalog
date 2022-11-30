@@ -13,12 +13,15 @@ metadata:
     tekton.dev/platforms: "linux/amd64"
 spec:
   description: >-
-    Task for demoing and testing purposes ONLY.
+    Beware! Task for demoing and testing purposes ONLY.
+    Not intended for being a generic task to run any testsuite.
     This task will run gotest suite specified by FEATURE on a CLUSTER.
     Requires a kubeconfig of a cluster with two worker nodes with
     SR-IOV and PTP capable NICs.
-    This task should be decomposed in simpler tasks.
+    This task should be decomposed in simpler steps.
     Available features supported now in this task is only SR-IOV .
+    SMOKE_TEST is disabled by default. When enabled a small subset of
+    most representative SR-IOV test cases are executed.
   params:
     - name: CLUSTER_NAME
       type: string
@@ -32,17 +35,21 @@ spec:
       type: string
     - name: FEATURE
       type: string
+    - name: SMOKE_TEST
+      type: string
+      default: "false"
     - name: INTERFACE_LIST
       type: string
   steps:
     - name: run-suite
+      timeout: 10h0m0s
       image: $(inputs.params.IMAGE)
       # yamllint disable rule:line-length
       resources:
         requests:
-          cpu: "2000m"
+          cpu: 2000m
         limits:
-          cpu: "4000m"
+          cpu: 4000m
       script: |
         export PATH=$PATH:$HOME/go/bin
         export CGO_ENABLED=0
@@ -54,7 +61,7 @@ spec:
         make install || true
         export CNF_INTERFACES_LIST=$(params.INTERFACE_LIST)
         export FEATURES=$(params.FEATURE)
-        export CNF_GOTESTS_SRIOV_SMOKE="true"
+        export CNF_GOTESTS_SRIOV_SMOKE=$(params.SMOKE_TEST)
         export CNF_GOTESTS_SRIOV_REINSTALL="false"
         oc label node $(params.NODE1) node-role.kubernetes.io/worker-cnf= --overwrite
         oc label node $(params.NODE2) node-role.kubernetes.io/worker-cnf= --overwrite
