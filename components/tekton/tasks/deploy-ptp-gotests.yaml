@@ -1,0 +1,34 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: deploy-ptp-gotests
+  labels:
+    app.kubernetes.io/version: "0.1"
+  annotations:
+    tekton.dev/categories: Testing
+    tekton.dev/pipelines.minVersion: "0.12.1"
+    tekton.dev/tags: golang, ptp-gotests
+    tekton.dev/displayName: vse-framework
+    tekton.dev/platforms: "linux/amd64"
+spec:
+  description: >-
+    Beware! Task for demoing and testing purposes ONLY.
+    Not intended for being a generic task to run any testsuite.
+    This task will run ptp-gotest suite specified.
+    This task should be decomposed in simpler steps.
+  steps:
+    - name: run-ptp-suite
+      image: quay.io/redhat-partner-solutions/sno-tests:latest
+      volumeMounts:
+        - name: config-volume
+          mountPath: /testconfig
+      resources:
+        requests:
+          cpu: 2000m
+        limits:
+          cpu: 4000m
+  volumes:
+    - name: config-volume
+      configMap:
+        name: sno-tests-cm

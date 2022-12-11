@@ -13,8 +13,6 @@ spec:
   params:
     - name: TESTS_IMAGE
       type: string
-      # yamllint disable rule:line-length
-      default: image-registry.openshift-image-registry.svc:5000/openshift/cnf-gotests
       description: |
         The image used to run the tests. This can be a base image,
         or an image that already has pre-requirements installed.
@@ -57,6 +55,10 @@ spec:
         - name: message
           value: "start test suite run from image..."
     - name: get-kubeconfig
+      when:
+        - input: "$(params.FEATURE)"
+          operator: in
+          values: ["sriov"]
       taskRef:
         name: get-kubeconfig
         kind: Task
@@ -68,7 +70,21 @@ spec:
       workspaces:
         - name: kubeconfigs
           workspace: pipeline-ws
-    - name: run-suite
+    - name: run-ptp-suite
+      when:
+        - input: "$(params.FEATURE)"
+          operator: in
+          values: ["ptp"]
+      taskRef:
+        name: deploy-ptp-gotests
+        kind: Task
+      runAfter:
+        - send-notification
+    - name: run-sriov-suite
+      when:
+        - input: "$(params.FEATURE)"
+          operator: in
+          values: ["sriov"]
       taskRef:
         name: deploy-gotests
         kind: Task
@@ -81,8 +97,6 @@ spec:
           value: $(params.FEATURE)
         - name: CLUSTER_NAME
           value: $(params.CLUSTER_NAME)
-        - name: NAMESPACE
-          value: $(params.NAMESPACE)
         - name: NODE1
           value: $(params.WORKER1)
         - name: NODE2
@@ -92,12 +106,31 @@ spec:
       workspaces:
         - name: kubeconfigs
           workspace: pipeline-ws
-    - name: send-report
+    - name: send-ptp-report
+      when:
+        - input: "$(params.FEATURE)"
+          operator: in
+          values: ["ptp"]
       taskRef:
         name: send-to-gchat-space
         kind: Task
       runAfter:
-        - run-suite
+        - run-ptp-suite
+      params:
+        - name: webhook-url
+          value: $(params.NOTIF_URL)
+        - name: message
+          value: $(params.MESSAGE)
+    - name: send-sriov-report
+      when:
+        - input: "$(params.FEATURE)"
+          operator: in
+          values: ["sriov"]
+      taskRef:
+        name: send-to-gchat-space
+        kind: Task
+      runAfter:
+        - run-sriov-suite
       params:
         - name: webhook-url
           value: $(params.NOTIF_URL)
