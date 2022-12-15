@@ -5,6 +5,7 @@ Installs the SR-IOV Operator.
 Do not use the `base` directory directly, as you will need to patch the `channel` based on the version of OpenShift you are using, or the version of the operator you want to use.
 
 The current *overlays* available are for the following channels:
+* [4.9](overlays/4.9)
 * [4.10](overlays/4.10)
 * [4.11](overlays/4.11)
 
@@ -19,7 +20,7 @@ oc apply -k components/apps/sriov-operator/overlays/<channel>
 Or, without cloning:
 
 ```
-oc apply -k https://github.com/redhat-partner-solutions/vse-catalog/components/apps/sriov-operator/overlays/<channel>
+oc apply -k https://github.com/redhat-partner-solutions/vse-catalog/components/apps/openshift-sriov-network-operator/overlays/<channel>
 ```
 
 As part of a different overlay in your own GitOps repo:
@@ -28,5 +29,5 @@ As part of a different overlay in your own GitOps repo:
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 bases:
-  - github.com/redhat-partner-solutions/vse-catalog/components/apps/sriov-operator/overlays/<channel>?ref=main
+  - github.com/redhat-partner-solutions/vse-catalog/components/apps/openshift-sriov-network-operator/overlays/<channel>?ref=main
 ```
