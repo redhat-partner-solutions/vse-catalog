@@ -14,28 +14,34 @@ metadata:
 spec:
   description: >-
     Beware! Task for demoing and testing purposes ONLY.
+    Suggestion: This task should be decomposed in simpler steps.
     Not intended for being a generic task to run any testsuite.
     This task will run gotest suite specified by FEATURE on a CLUSTER.
     Requires a kubeconfig of a cluster with two worker nodes with
-    SR-IOV and PTP capable NICs.
-    This task should be decomposed in simpler steps.
-    Available features supported now in this task is only SR-IOV .
+    identical SR-IOV capable NICs.
+    CLUSTER_NAME indicates the subfolder where the kubeconfig file from the
+    managed cluster lives in the input workspace.
+    Available FEATURE supported now is PTP and SR-IOV.
     SMOKE_TEST is disabled by default. When enabled a small subset of
     most representative SR-IOV test cases are executed.
   params:
     - name: CLUSTER_NAME
-      type: string
-    - name: NAMESPACE
+      description: Workspace path where the kubeconfig file lives.
       type: string
     - name: IMAGE
+      description: Image where tests live.
       type: string
     - name: NODE1
+      description: Name of 1st node.
       type: string
     - name: NODE2
+      description: Name of 2nd node.
       type: string
     - name: FEATURE
+      description: Operator under test "sriov" (tested) and "ptp" (untested).
       type: string
     - name: SMOKE_TEST
+      description: Run small functional test suite. Only applicable to "sriov".
       type: string
       default: "false"
     - name: INTERFACE_LIST

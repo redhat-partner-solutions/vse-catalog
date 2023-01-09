@@ -21,13 +21,31 @@ spec:
       # yamllint enable rule:line-length
     - name: FEATURE
       default: "sriov"
+      description: |
+        Feature in managed cluster under test.
+        Allowed values are "sriov" (tested) and "ptp" (untested).
     - name: CLUSTER_NAME
+      description: |
+        Name of the managed cluster
     - name: NAMESPACE
+      description: |
+        Namespace of managed cluster in the hub cluster.
     - name: NOTIF_URL
+      description: |
+        Google chat webhook URL to send MESSAGE.
     - name: MESSAGE
+      description: |
+        Message to send.
     - name: WORKER1
+      description: |
+        Compact cluster worker 1 name under test.
     - name: WORKER2
+      description: |
+        Worker 2 name under test.
     - name: INTERFACES
+      description: |
+        Two interface ports present in WORKER1,
+        connected to equivalent interface ports in WORKER2.
   tasks:
     - name: send-notification
       taskRef:
