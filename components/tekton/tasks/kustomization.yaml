@@ -18,3 +18,4 @@ resources:
     - buildah.yaml
     - set-tag.yaml
     - deploy-gotests.yaml
+    - deploy-ptp-gotests.yaml
