@@ -53,9 +53,9 @@ spec:
       # yamllint disable rule:line-length
       resources:
         requests:
-          cpu: 2000m
+          cpu: '2'
         limits:
-          cpu: 4000m
+          cpu: '4'
       script: |
         export PATH=$PATH:$HOME/go/bin
         export CGO_ENABLED=0
