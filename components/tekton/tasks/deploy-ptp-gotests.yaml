@@ -25,9 +25,9 @@ spec:
           mountPath: /testconfig
       resources:
         requests:
-          cpu: 2000m
+          cpu: '2'
         limits:
-          cpu: 4000m
+          cpu: '4'
   volumes:
     - name: config-volume
       configMap:
