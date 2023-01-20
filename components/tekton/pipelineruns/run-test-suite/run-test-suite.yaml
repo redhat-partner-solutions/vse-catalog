@@ -16,7 +16,7 @@ spec:
       value: "Test suite finished"
   pipelineRef:
     name: run-test-suite-from-image
-  serviceAccountName: build-bot
+  serviceAccountName: pipeline-credentials-sa
   workspaces:
     - name: pipeline-ws
       volumeClaimTemplate:

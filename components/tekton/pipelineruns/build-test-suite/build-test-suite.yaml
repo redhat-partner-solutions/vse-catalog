@@ -11,7 +11,7 @@ spec:
       value: Dockerfile
   pipelineRef:
     name: build-image-from-git-repo
-  serviceAccountName: build-bot
+  serviceAccountName: pipeline-credentials-sa
   workspaces:
     - name: pipeline-ws
       volumeClaimTemplate:
