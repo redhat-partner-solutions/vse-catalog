@@ -1,0 +1,104 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: create-cluster
+  namespace: vse-cicd-catalog
+spec:
+  params:
+    - default: main
+      name: clusters_git_revision
+      type: string
+    - default: 'https://github.com/redhat-partner-solutions/vse-clusters'
+      name: clusters_git_url
+      type: string
+    - default: cars-lab/blazer
+      name: clusters_folder_path
+      type: string
+      description: path for the cluster in the clusters repo
+    - default: main
+      name: hub_git_revision
+      type: string
+    - default: 'https://github.com/redhat-partner-solutions/vse-carslab-hub'
+      name: hub_git_url
+      type: string
+    - default: clusters/overlays
+      name: hub_clusters_path
+      type: string
+      description: path for the clusters in the hub cluster repo
+  tasks:
+    - name: git-clone-hub-repo
+      params:
+        - name: url
+          value: "$(params.hub_git_url)"
+        - name: revision
+          value: "$(params.hub_git_revision)"
+        - name: deleteExisting
+          value: 'true'
+        - name: gitInitImage
+          value: >-
+            registry.redhat.io/openshift-pipelines/pipelines-git-init-rhel8@sha256:050ab978927fc721918c3284bdd8a81315ffb1ed660c6415f1196e79f2f6c80a
+      taskRef:
+        kind: ClusterTask
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: hub-repo
+    - name: git-clone-clusters-repo
+      params:
+        - name: url
+          value: "$(params.clusters_git_url)"
+        - name: revision
+          value: "$(params.clusters_git_revision)"
+        - name: deleteExisting
+          value: 'true'
+        - name: gitInitImage
+          value: >-
+            registry.redhat.io/openshift-pipelines/pipelines-git-init-rhel8@sha256:050ab978927fc721918c3284bdd8a81315ffb1ed660c6415f1196e79f2f6c80a
+      taskRef:
+        kind: ClusterTask
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: git-clusters-source
+    - name: copy-cluster-to-hub
+      params:
+        - name: source-dir
+          value: "$(params.clusters_folder_path)"
+        - name: destination-dir
+          value: "$(params.hub_clusters_path)"
+      taskRef:
+        kind: Task
+        name: copy-from-workspace
+      workspaces:
+        - name: source
+          workspace: git-clusters-source
+        - name: destination
+          workspace: hub-repo
+      runAfter:
+        - git-clone-hub-repo
+        - git-clone-clusters-repo
+    - name: push-to-repo
+      params:
+        - name: GIT_SCRIPT
+          value: |
+            git config --global user.name "redhat-testharness"
+            git checkout -b test-pipeline
+            git add $(params.hub_clusters_path)
+            git commit -m "Copy folder from pipeline"
+            git push origin test-pipeline
+      taskRef:
+        kind: ClusterTask
+        name: git-cli
+      workspaces:
+        - name: source
+          workspace: hub-repo
+      runAfter:
+        - copy-cluster-to-hub
+  workspaces:
+    - name: git-clusters-source
+      optional: false
+    - name: hub-repo
+      optional: false
+  resources: []
+  finally: []
