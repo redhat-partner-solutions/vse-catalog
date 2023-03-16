@@ -19,3 +19,4 @@ resources:
     - set-tag.yaml
     - deploy-gotests.yaml
     - deploy-ptp-gotests.yaml
+    - copy-from-workspace.yaml

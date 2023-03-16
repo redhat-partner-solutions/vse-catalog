@@ -1,0 +1,36 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: create-cluster-pipeline-
+  namespace: vse-cicd-catalog
+spec:
+  serviceAccountName: pipeline-credentials-sa
+  pipelineRef:
+    name: create-cluster
+  # yamllint disable rule:line-length
+  # Git-clone task runs as non-root user
+  # Generally, the default permissions for storage volumes are configured for the root user.
+  # To make the volumes accessible by the non-root user,
+  # you will need to either configure the permissions manually or set the fsGroup field
+  # under PodSecurityContext in your TaskRun or PipelineRun.
+  # yamllint enable rule:line-length
+  podTemplate:
+    securityContext:
+      fsGroup: 65532
+  params:
+    - name: clusters_git_revision
+      value: main
+    - name: clusters_git_url
+      value: 'git@github.com:redhat-partner-solutions/vse-clusters.git'
+    - name: hub_git_revision
+      value: main
+    - name: hub_git_url
+      value: 'git@github.com:redhat-partner-solutions/vse-carslab-hub.git'
+  workspaces:
+    - name: git-clusters-source
+      persistentVolumeClaim:
+        claimName: git-clusters-source-pvc
+    - name: hub-repo
+      persistentVolumeClaim:
+        claimName: hub-repo-pvc
