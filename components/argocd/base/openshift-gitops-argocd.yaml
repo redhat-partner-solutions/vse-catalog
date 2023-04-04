@@ -95,3 +95,7 @@ spec:
       kinds:
       - TaskRun
       - PipelineRun
+  sso:
+    provider: dex
+    dex:
+      openShiftOAuth: true
