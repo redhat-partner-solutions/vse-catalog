@@ -11,3 +11,5 @@ namespace: vse-cicd-catalog
 resources:
     - ./build-image-from-git-repo/build-image-from-git-repo.yaml
     - ./run-testsuite-from-image/run-testsuite-from-image.yaml
+    - ./create-cluster/create-cluster.yaml
+    - ./send-gchat/send-gchat.yaml
