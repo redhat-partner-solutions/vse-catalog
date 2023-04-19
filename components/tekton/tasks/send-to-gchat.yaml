@@ -22,7 +22,7 @@ spec:
       description: plain text message
   steps:
     - name: post
-      image: docker.io/curlimages/curl:7.84.0
+      image: registry.access.redhat.com/ubi9/ubi:9.1.0-1782
       # yamllint disable rule:line-length
       script: |
         #!/bin/sh
