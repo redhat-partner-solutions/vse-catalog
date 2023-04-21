@@ -1,0 +1,53 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  annotations:
+    tekton.dev/categories: Messaging
+    tekton.dev/pipelines.minVersion: 0.12.1
+  name: send-report-to-gchat-space
+spec:
+  description: This task post a simple message to a gchat space.
+  params:
+    - description: url for gchat webhook
+      name: webhook-url
+      type: string
+    - description: Message to send on success
+      name: success-message
+      type: string
+    - description: plain text message
+      name: failure-message
+      type: string
+    - default: /workspace/reports/sync-test-failures
+      description: Prefix for failure message
+      name: failures-path
+      type: string
+    - default: no-report-message
+      description: The message to send when no report is found
+      name: no-report-message
+      type: string
+  steps:
+    - image: 'registry.access.redhat.com/ubi9/ubi:9.1.0-1782'
+      name: post
+      resources: {}
+      script: >
+        #!/bin/sh
+
+        if [ ! -f $(params.failures-path) ]; then
+          export MESSAGE="Failed to process test report";
+        else
+
+          export FAILURES="$(cat $(params.failures-path))";
+
+          if [[ "$(echo $FAILURES | wc -w )" == "0" ]]; then
+            export MESSAGE="$(params.success-message)";
+          else
+            export MESSAGE="$(params.failure-message):\n${FAILURES}";
+          fi;
+        fi;
+
+        echo $MESSAGE;
+
+        curl -s -X POST -H 'Content-type: application/json'  --data "{"text":\"${MESSAGE}\"}" "$(params.webhook-url)"
+  workspaces:
+    - mountPath: /workspace/reports
+      name: report
