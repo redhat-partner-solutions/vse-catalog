@@ -1,0 +1,22 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: run-vse-sync-testsuite-run
+  labels:
+    tekton.dev/pipeline: run-vse-sync-testsuite
+spec:
+  pipelineRef:
+    name: run-vse-sync-testsuite
+  serviceAccountName: pipeline-credentials-sa
+  workspaces:
+    - name: report
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 10Gi
+          storageClassName: lso-filesystemclass
+          volumeMode: Filesystem

@@ -20,3 +20,5 @@ resources:
     - deploy-gotests.yaml
     - deploy-ptp-gotests.yaml
     - copy-from-workspace.yaml
+    - send-report-to-gchat.yaml
+    - deploy-vse-sync-testsuite.yaml

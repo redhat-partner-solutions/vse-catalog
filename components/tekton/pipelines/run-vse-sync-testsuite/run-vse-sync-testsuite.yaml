@@ -1,0 +1,44 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: run-vse-sync-testsuite
+spec:
+  finally:
+    - name: send-report-to-gchat-space
+      params:
+        - name: webhook-url
+          value: >-
+            https://chat.googleapis.com/v1/spaces/AAAAiCQuo38/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=QjLrTKvtNWmxFlkce7kVXJu6pzzlLtACBo8I4xem-AU%3D
+        - name: success-message
+          value: All Tests passed
+        - name: failure-message
+          value: The following tests failed
+      taskRef:
+        kind: Task
+        name: send-report-to-gchat-space
+      workspaces:
+        - name: report
+          workspace: report
+  tasks:
+    - name: deploy-vse-sync-testsuite
+      params:
+        - name: test-image
+          value: 'quay.io/redhat-partner-solutions/vse-sync-testsuite:latest'
+        - name: jq-image
+          value: 'quay.io/micosta/jq:latest'
+        - name: config_volume
+          value: vse-sync-testsuite-config
+        - name: kubeconfig_secret
+          value: venom-cars-lab-admin-kubeconfig
+        - name: kubeconfig_secret_dest_path
+          value: /usr/th/kubeconfig/
+        - name: report_path
+          value: /workspace/reports/vse-sync-testsuite.json
+      taskRef:
+        kind: Task
+        name: deploy-vse-sync-testsuite
+      workspaces:
+        - name: report
+          workspace: report
+  workspaces:
+    - name: report

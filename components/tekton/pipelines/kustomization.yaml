@@ -13,3 +13,4 @@ resources:
     - ./run-testsuite-from-image/run-testsuite-from-image.yaml
     - ./create-cluster/create-cluster.yaml
     - ./send-gchat/send-gchat.yaml
+    - ./run-vse-sync-testsuite/
