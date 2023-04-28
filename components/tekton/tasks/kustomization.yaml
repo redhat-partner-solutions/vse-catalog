@@ -22,3 +22,4 @@ resources:
     - copy-from-workspace.yaml
     - send-report-to-gchat.yaml
     - deploy-vse-sync-testsuite.yaml
+    - https://api.hub.tekton.dev/v1/resource/tekton/task/openshift-client/0.2/raw
