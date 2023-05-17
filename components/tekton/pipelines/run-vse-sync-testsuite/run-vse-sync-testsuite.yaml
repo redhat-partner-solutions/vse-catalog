@@ -34,8 +34,6 @@ spec:
       params:
         - name: test-image
           value: 'quay.io/redhat-partner-solutions/vse-sync-testsuite:latest'
-        - name: jq-image
-          value: 'quay.io/micosta/jq:latest'
         - name: config_volume
           value: vse-sync-testsuite-config
         - name: kubeconfig_secret
