@@ -32,10 +32,6 @@ spec:
         Path of test results report
       name: report_path
       type: string
-    - default: 'docker.io/stedolan/jq:latest'
-      description: Image for jq
-      name: jq-image
-      type: string
   steps:
     - image: $(params.test-image)
       name: run-ptp-suite
@@ -55,7 +51,7 @@ spec:
           name: config-volume
         - mountPath: $(params.kubeconfig_secret_dest_path)
           name: kubeconfig-secret
-    - image: $(params.jq-image)
+    - image: "quay.io/toolhippie/jq:latest"
       name: process-results
       resources: {}
       # noqa line-length
