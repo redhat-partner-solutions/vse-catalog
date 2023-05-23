@@ -1,0 +1,15 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: send-chat
+spec:
+  pipelineRef:
+    name: send-chat-notification
+  params:
+    # yamllint disable rule:line-length
+    - name: webhook_url
+      value: "https://chat.googleapis.com/v1/spaces/AAAAiCQuo38/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=K5qFDcnHxE3-hRqbL4AZXamfpqHNFzv5t6TiMMe4rZc%3D"
+    # yamllint enable rule:line-length
+    - name: webhook_message
+      value: "Test from pipeline"
