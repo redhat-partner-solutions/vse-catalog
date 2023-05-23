@@ -1,3 +1,4 @@
+---
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
@@ -54,7 +55,8 @@ spec:
     - image: "quay.io/toolhippie/jq:latest"
       name: process-results
       resources: {}
-      # noqa line-length
+      # Tried to find a way to wrap this but it kept breaking
+      # yamllint disable
       script: >
         #!/bin/sh
 
@@ -63,6 +65,7 @@ spec:
         fi
 
         jq -r '.[] | select(.SuiteSucceeded  == false) | .SpecReports[] | select(has("Failure")) | [.ContainerHierarchyTexts , .LeafNodeText] | flatten | join(" / ")'  $(params.report_path) > /workspace/reports/sync-test-failures;
+      # yamllint enable
   volumes:
     - configMap:
         name: $(params.config_volume)

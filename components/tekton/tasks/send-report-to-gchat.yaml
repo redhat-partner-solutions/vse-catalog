@@ -1,3 +1,4 @@
+---
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
@@ -47,7 +48,8 @@ spec:
 
         echo $MESSAGE;
 
-        curl -s -X POST -H 'Content-type: application/json'  --data "{"text":\"${MESSAGE}\"}" "$(params.webhook-url)"
+        curl -s -X POST -H 'Content-type: application/json' \
+          --data "{"text":\"${MESSAGE}\"}" "$(params.webhook-url)"
   workspaces:
     - mountPath: /workspace/reports
       name: report
