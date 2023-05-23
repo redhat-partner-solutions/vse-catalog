@@ -1,3 +1,4 @@
+---
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
@@ -55,11 +56,16 @@ spec:
         - name: SCRIPT
           value: |-
 
-            if ! oc get secret $(params.kubeconfig-secret-dest); then 
+            if ! oc get secret $(params.kubeconfig-secret-dest); then
 
-              oc extract -n $(params.kubeconfig-namespace) secrets/$(params.kubeconfig-secret) --to /tmp --confirm=True
+              oc extract -n $(params.kubeconfig-namespace) \
+                secrets/$(params.kubeconfig-secret) \
+                --to /tmp --confirm=True
 
-              oc create secret generic $(params.kubeconfig-secret-dest) --from-file=kubeconfig=/tmp/kubeconfig --from-file=raw-kubeconfig=/tmp/raw-kubeconfig --type=Opaque
+              oc create secret generic $(params.kubeconfig-secret-dest) \
+                --from-file=kubeconfig=/tmp/kubeconfig \
+                --from-file=raw-kubeconfig=/tmp/raw-kubeconfig \
+                --type=Opaque
 
             fi
         - name: VERSION
