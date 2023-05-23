@@ -39,7 +39,7 @@ spec:
           value: >-
             registry.redhat.io/openshift-pipelines/pipelines-git-init-rhel8@sha256:050ab978927fc721918c3284bdd8a81315ffb1ed660c6415f1196e79f2f6c80a
       taskRef:
-        kind: ClusterTask
+        kind: Task
         name: git-clone
       workspaces:
         - name: output
@@ -56,7 +56,7 @@ spec:
           value: >-
             registry.redhat.io/openshift-pipelines/pipelines-git-init-rhel8@sha256:050ab978927fc721918c3284bdd8a81315ffb1ed660c6415f1196e79f2f6c80a
       taskRef:
-        kind: ClusterTask
+        kind: Task
         name: git-clone
       workspaces:
         - name: output
@@ -83,6 +83,8 @@ spec:
         - name: GIT_SCRIPT
           value: |
             git config --global user.name "redhat-testharness"
+            git config --global user.email "redhat-partner-solutions@redhat.com"
+            git config --global --add safe.directory /workspace/source
             git checkout -b test-pipeline
             git add $(params.hub_clusters_path)
             git commit -m "Copy folder from pipeline"

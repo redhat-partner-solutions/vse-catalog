@@ -4,7 +4,7 @@ kind: Task
 metadata:
   name: git-clone
   labels:
-    app.kubernetes.io/version: "0.7"
+    app.kubernetes.io/version: "0.8"
   annotations:
     tekton.dev/pipelines.minVersion: "0.29.0"
     tekton.dev/categories: Git
@@ -15,6 +15,7 @@ spec:
   description: >-
     These Tasks are Git tasks to work with repositories used by other tasks
     in your Pipeline.
+
     The git-clone Task will clone a repo from the provided url into the
     output Workspace. By default the repo will be cloned into the root of
     your Workspace. You can clone into a subdirectory by setting this Task's
@@ -106,8 +107,7 @@ spec:
       default: "gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/git-init:v0.29.0"
     - name: userHome
       description: |
-        Absolute path to the user's home directory. Set this explicitly if you are running the image as a non-root user or have overridden
-        the gitInitImage param with an image containing custom user configuration.
+        Absolute path to the user's home directory.
       type: string
       default: "/tekton/home"
       # yamllint enable rule:line-length
@@ -166,24 +166,32 @@ spec:
           value: $(workspaces.ssl-ca-directory.bound)
         - name: WORKSPACE_SSL_CA_DIRECTORY_PATH
           value: $(workspaces.ssl-ca-directory.path)
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
       # yamllint disable rule:line-length
       script: |
         #!/usr/bin/env sh
         set -eu
+
         if [ "${PARAM_VERBOSE}" = "true" ] ; then
           set -x
         fi
+
+
         if [ "${WORKSPACE_BASIC_AUTH_DIRECTORY_BOUND}" = "true" ] ; then
           cp "${WORKSPACE_BASIC_AUTH_DIRECTORY_PATH}/.git-credentials" "${PARAM_USER_HOME}/.git-credentials"
           cp "${WORKSPACE_BASIC_AUTH_DIRECTORY_PATH}/.gitconfig" "${PARAM_USER_HOME}/.gitconfig"
           chmod 400 "${PARAM_USER_HOME}/.git-credentials"
           chmod 400 "${PARAM_USER_HOME}/.gitconfig"
         fi
+
         if [ "${WORKSPACE_SSH_DIRECTORY_BOUND}" = "true" ] ; then
           cp -R "${WORKSPACE_SSH_DIRECTORY_PATH}" "${PARAM_USER_HOME}"/.ssh
           chmod 700 "${PARAM_USER_HOME}"/.ssh
           chmod -R 400 "${PARAM_USER_HOME}"/.ssh/*
         fi
+
         if [ "${WORKSPACE_SSL_CA_DIRECTORY_BOUND}" = "true" ] ; then
            export GIT_SSL_CAPATH="${WORKSPACE_SSL_CA_DIRECTORY_PATH}"
            if [ "${PARAM_CRT_FILENAME}" != "" ] ; then
@@ -191,6 +199,7 @@ spec:
            fi
         fi
         CHECKOUT_DIR="${WORKSPACE_OUTPUT_PATH}/${PARAM_SUBDIRECTORY}"
+
         cleandir() {
           # Delete any existing contents of the repo directory if it exists.
           #
@@ -205,12 +214,15 @@ spec:
             rm -rf "${CHECKOUT_DIR}"/..?*
           fi
         }
+
         if [ "${PARAM_DELETE_EXISTING}" = "true" ] ; then
           cleandir
         fi
+
         test -z "${PARAM_HTTP_PROXY}" || export HTTP_PROXY="${PARAM_HTTP_PROXY}"
         test -z "${PARAM_HTTPS_PROXY}" || export HTTPS_PROXY="${PARAM_HTTPS_PROXY}"
         test -z "${PARAM_NO_PROXY}" || export NO_PROXY="${PARAM_NO_PROXY}"
+
         /ko-app/git-init \
           -url="${PARAM_URL}" \
           -revision="${PARAM_REVISION}" \
