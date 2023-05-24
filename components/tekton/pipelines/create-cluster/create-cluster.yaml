@@ -26,6 +26,11 @@ spec:
       name: hub_clusters_path
       type: string
       description: path for the clusters in the hub cluster repo
+    - description: gChat URL
+      name: webhook_url
+      type: string
+      # yamllint disable-line rule:line-length
+      default: "https://chat.googleapis.com/v1/spaces/AAAAiCQuo38/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=QjLrTKvtNWmxFlkce7kVXJu6pzzlLtACBo8I4xem-AU"
   tasks:
     - name: git-clone-hub-repo
       params:
@@ -97,10 +102,24 @@ spec:
           workspace: hub-repo
       runAfter:
         - copy-cluster-to-hub
+  finally:
+    - name: gchat-final-notification
+      params:
+        - name: webhook-url
+          value: $(params.webhook_url)
+        - name: message
+          # yamllint disable-line rule:line-length
+          value: "Cluster deployment pipeline finished with status *$(tasks.status)*"
+      taskRef:
+        kind: Task
+        name: send-to-gchat-space
+      when:
+        - input: "$(tasks.status)"
+          operator: in
+          values: ["Completed", "Failed", "Succeeded"]
   workspaces:
     - name: git-clusters-source
       optional: false
     - name: hub-repo
       optional: false
   resources: []
-  finally: []
