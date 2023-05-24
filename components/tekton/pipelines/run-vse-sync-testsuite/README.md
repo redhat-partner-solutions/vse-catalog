@@ -1,7 +1,7 @@
-# Build-Image-from-git-repo
+# Run-vse-sync-testsuite
 
-The `run-testsuite-from-image` base pipeline runs a specific testsuite from
-a base image containing the test suites.
+The `run-vse-sync-testsuite` base pipeline runs a the vse sync testsuite from
+a released container image containing the test suites.
 
 ## Install 
 
@@ -14,5 +14,5 @@ oc create -k github.com/redhat-partner-solutions/vse-catalog/components/tekton/t
 Install pipeline:
 
 ```console
-oc create -f https://raw.githubusercontent.com/redhat-partner-solutions/vse-catalog/main/components/tekton/pipelines/run-testsuite-from-image/run-testsuite-from-image.yaml
+oc create -k https://raw.githubusercontent.com/redhat-partner-solutions/vse-catalog/main/components/tekton/pipelines/run-vse-sync-testsuite/
 ```
