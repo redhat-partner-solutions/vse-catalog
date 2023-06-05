@@ -18,6 +18,7 @@ spec:
       image: ubi8
       # yamllint disable rule:line-length
       script: |
+        mkdir -p $(workspaces.destination.path)/$(params.destination-dir)
         cp -R $(workspaces.source.path)/$(params.source-dir) $(workspaces.destination.path)/$(params.destination-dir)
       # yamllint enable rule:line-length
   workspaces:
