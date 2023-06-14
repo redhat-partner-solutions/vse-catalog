@@ -29,6 +29,8 @@ spec:
       value: 'git@github.com:redhat-partner-solutions/vse-carslab-hub.git'
     - name: destination_branch
       value: 'testing'
+    - name: cluster_name
+      value: blazer
   workspaces:
     - name: git-clusters-source
       persistentVolumeClaim:

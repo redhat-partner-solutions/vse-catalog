@@ -28,6 +28,9 @@ spec:
       description: path for the clusters in the hub cluster repo
     - name: destination_branch
       type: string
+    - name: cluster_name
+      type: string
+      description: cluster name
     - description: gChat URL
       name: webhook_url
       type: string
@@ -94,8 +97,8 @@ spec:
             git config --global --add safe.directory /workspace/source
             git checkout -B "$(params.destination_branch)"
             git add $(params.hub_clusters_path)
-            git commit -m "Copy folder from pipeline"
-            git push origin "$(params.destination_branch)"
+            git commit -m "Create cluster $(params.cluster_name) from pipeline"
+            git push origin cars-lab-4-12
       taskRef:
         kind: ClusterTask
         name: git-cli
@@ -104,6 +107,17 @@ spec:
           workspace: hub-repo
       runAfter:
         - copy-cluster-to-hub
+    - name: sync-cluster-argo-app
+      params:
+        - name: application-name
+          value: "$(params.cluster_name)-siteconfig"
+        - name: flags
+          value: --insecure
+      taskRef:
+        kind: Task
+        name: argocd-task-sync-and-wait
+      runAfter:
+        - push-to-repo
   finally:
     - name: gchat-final-notification
       params:
