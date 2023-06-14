@@ -27,6 +27,8 @@ spec:
       value: main
     - name: hub_git_url
       value: 'git@github.com:redhat-partner-solutions/vse-carslab-hub.git'
+    - name: destination_branch
+      value: 'testing'
   workspaces:
     - name: git-clusters-source
       persistentVolumeClaim:

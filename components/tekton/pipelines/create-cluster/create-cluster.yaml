@@ -26,6 +26,8 @@ spec:
       name: hub_clusters_path
       type: string
       description: path for the clusters in the hub cluster repo
+    - name: destination_branch
+      type: string
     - description: gChat URL
       name: webhook_url
       type: string
@@ -90,10 +92,10 @@ spec:
             git config --global user.name "redhat-testharness"
             git config --global user.email "redhat-partner-solutions@redhat.com"
             git config --global --add safe.directory /workspace/source
-            git checkout -b test-pipeline
+            git checkout -B "$(params.destination_branch)"
             git add $(params.hub_clusters_path)
             git commit -m "Copy folder from pipeline"
-            git push origin test-pipeline
+            git push origin "$(params.destination_branch)"
       taskRef:
         kind: ClusterTask
         name: git-cli
