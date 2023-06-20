@@ -98,7 +98,7 @@ spec:
             git checkout -B "$(params.destination_branch)"
             git add $(params.hub_clusters_path)
             git commit -m "Create cluster $(params.cluster_name) from pipeline"
-            git push origin cars-lab-4-12
+            git push origin $(params.destination_branch)
       taskRef:
         kind: ClusterTask
         name: git-cli
