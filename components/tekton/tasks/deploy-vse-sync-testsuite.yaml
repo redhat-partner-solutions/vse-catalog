@@ -1,0 +1,78 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  annotations:
+    tekton.dev/categories: Testing
+    tekton.dev/displayName: vse-framework
+    tekton.dev/tags: 'golang, vse-sync-testsuite'
+  name: deploy-vse-sync-testsuite
+spec:
+  description: This task runs the vse-sync-testsuite image.
+  params:
+    - default: 'quay.io/redhat-partner-solutions/vse-sync-testsuite@sha256:435cf1c99c5b670636fca2e97c74aa36f005d629188efe06bda8d2df3f78e819'  # yamllint disable rule:line-length
+      description: Image for test suite
+      name: test-image
+      type: string
+    - default: vse-sync-testsuite-config
+      description: |
+        Name of the config-volume map to mount
+      name: config_volume
+      type: string
+    - description: |
+        The tag for the image you want to run
+      name: kubeconfig_secret
+      type: string
+    - default: /usr/th/kubeconfig/
+      description: |
+        Path that the kubeconfig will be mounted into
+      name: kubeconfig_secret_dest_path
+      type: string
+    - default: /workspace/reports/vse-sync-testsuite.json
+      description: |
+        Path of test results report
+      name: report_path
+      type: string
+  steps:
+    - image: $(params.test-image)
+      name: run-ptp-suite
+      script: |
+        #!/bin/sh
+
+        ./tests.test \
+          --config=/usr/th/cfg/test_config.yaml \
+          --env=/usr/th/cfg/env.yaml \
+          --ginkgo.json-report="$(params.report_path)"
+
+        chmod a+r $(params.report_path)
+
+        echo $?
+      volumeMounts:
+        - mountPath: /usr/th/cfg/
+          name: config-volume
+        - mountPath: $(params.kubeconfig_secret_dest_path)
+          name: kubeconfig-secret
+    - image: "quay.io/toolhippie/jq:latest"
+      name: process-results
+      resources: {}
+      # Tried to find a way to wrap this but it kept breaking
+      # yamllint disable
+      script: >
+        #!/bin/sh
+
+        if [ ! -f $(params.report_path) ]; then
+          exit 1;
+        fi
+
+        jq -r '.[] | select(.SuiteSucceeded  == false) | .SpecReports[] | select(has("Failure")) | [.ContainerHierarchyTexts , .LeafNodeText] | flatten | join(" / ")'  $(params.report_path) > /workspace/reports/sync-test-failures;
+      # yamllint enable
+  volumes:
+    - configMap:
+        name: $(params.config_volume)
+      name: config-volume
+    - name: kubeconfig-secret
+      secret:
+        secretName: $(params.kubeconfig_secret)
+  workspaces:
+    - mountPath: /workspace/reports
+      name: report

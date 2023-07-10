@@ -1,0 +1,29 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: run-vse-sync-testsuite-run
+  labels:
+    tekton.dev/pipeline: run-vse-sync-testsuite
+spec:
+  params:
+    - name: kubeconfig-secret
+      value: venom-cars-lab-admin-kubeconfig
+    - name: kubeconfig-namespace
+      value: venom-cars-lab
+    - name: kubeconfig-secret-dest
+      value: venom-cars-lab-admin-kubeconfig
+  pipelineRef:
+    name: run-vse-sync-testsuite
+  serviceAccountName: pipeline-credentials-sa
+  workspaces:
+    - name: report
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 10Gi
+          storageClassName: lso-filesystemclass
+          volumeMode: Filesystem

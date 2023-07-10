@@ -1,0 +1,26 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: copy-from-workspace
+spec:
+  description: >-
+    Copy files from one workspace to another
+  params:
+    - name: source-dir
+      type: string
+      description: the source directory to copy from
+    - name: destination-dir
+      type: string
+      description: the destination directory to copy from
+  steps:
+    - name: copy-files
+      image: ubi8
+      # yamllint disable rule:line-length
+      script: |
+        mkdir -p $(workspaces.destination.path)/$(params.destination-dir)
+        cp -R $(workspaces.source.path)/$(params.source-dir) $(workspaces.destination.path)/$(params.destination-dir)
+      # yamllint enable rule:line-length
+  workspaces:
+    - name: source
+    - name: destination

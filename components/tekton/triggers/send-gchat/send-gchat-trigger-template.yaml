@@ -1,0 +1,52 @@
+---
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerTemplate
+metadata:
+  name: send-chat
+spec:
+  params:
+    # yamllint disable rule:line-length
+    - name: webhook_url
+      default: "https://chat.googleapis.com/v1/spaces/AAAAiCQuo38/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=K5qFDcnHxE3-hRqbL4AZXamfpqHNFzv5t6TiMMe4rZc%3D"
+    - name: webhook_message
+      default: "Test from pipeline"
+      # yamllint enable rule:line-length
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1beta1
+      kind: PipelineRun
+      metadata:
+        generateName: send-chat-
+      spec:
+        pipelineRef:
+          name: send-chat-notification
+        params:
+          - name: webhook_url
+            value: $(tt.params.webhook_url)
+          - name: webhook_message
+            value: $(tt.params.webhook_message)
+
+---
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerBinding
+metadata:
+  name: send-chat-binding
+spec:
+  params:
+    - name: webhook_url
+      value: $(body.webhook_url)
+    - name: webhook_message
+      value: $(body.webhook_message)
+
+---
+apiVersion: triggers.tekton.dev/v1beta1
+kind: EventListener
+metadata:
+  name: send-chat-listener
+spec:
+  serviceAccountName: pipeline-credentials-sa
+  triggers:
+    - name: send-chat-trigger
+      bindings:
+        - ref: send-chat-binding
+      template:
+        ref: send-chat

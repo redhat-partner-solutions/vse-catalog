@@ -1,0 +1,24 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: send-chat-notification
+  namespace: vse-cicd-catalog
+spec:
+  params:
+    - description: gChat URL
+      name: webhook_url
+      type: string
+    - description: gChat message
+      name: webhook_message
+      type: string
+  tasks:
+    - name: send-to-gchat-space
+      params:
+        - name: webhook-url
+          value: $(params.webhook_url)
+        - name: message
+          value: $(params.webhook_message)
+      taskRef:
+        kind: Task
+        name: send-to-gchat-space

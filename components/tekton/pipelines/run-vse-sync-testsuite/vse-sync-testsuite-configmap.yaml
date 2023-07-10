@@ -1,0 +1,19 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vse-sync-testsuite-config
+data:
+  # kubeconfig_path should match with kubeconfig_secret_dest_path
+  env.yaml: |
+    kubeconfig_path: /usr/th/kubeconfig/kubeconfig
+  # This just some dummy values for testing ATM taken form examples
+  test_config.yaml: |
+    suite_configs:
+      - ptp_tests_config:
+          namespace: openshift-ptp
+          pod_name: linuxptp-daemon-z5hh8
+          container: linuxptp-daemon-container
+          interface_name: ens7f0
+          tty_timeout: 30
+          dpll_reads: 4

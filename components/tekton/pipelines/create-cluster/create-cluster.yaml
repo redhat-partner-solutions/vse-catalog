@@ -1,0 +1,141 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: create-cluster
+  namespace: vse-cicd-catalog
+spec:
+  params:
+    - default: main
+      name: clusters_git_revision
+      type: string
+    - default: 'https://github.com/redhat-partner-solutions/vse-clusters'
+      name: clusters_git_url
+      type: string
+    - default: cars-lab/blazer
+      name: clusters_folder_path
+      type: string
+      description: path for the cluster in the clusters repo
+    - default: main
+      name: hub_git_revision
+      type: string
+    - default: 'https://github.com/redhat-partner-solutions/vse-carslab-hub'
+      name: hub_git_url
+      type: string
+    - default: clusters/overlays
+      name: hub_clusters_path
+      type: string
+      description: path for the clusters in the hub cluster repo
+    - name: destination_branch
+      type: string
+    - name: cluster_name
+      type: string
+      description: cluster name
+    - description: gChat URL
+      name: webhook_url
+      type: string
+      # yamllint disable-line rule:line-length
+      default: "https://chat.googleapis.com/v1/spaces/AAAAiCQuo38/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=QjLrTKvtNWmxFlkce7kVXJu6pzzlLtACBo8I4xem-AU"
+  tasks:
+    - name: git-clone-hub-repo
+      params:
+        - name: url
+          value: "$(params.hub_git_url)"
+        - name: revision
+          value: "$(params.hub_git_revision)"
+        - name: deleteExisting
+          value: 'true'
+        - name: gitInitImage
+          value: >-
+            registry.redhat.io/openshift-pipelines/pipelines-git-init-rhel8@sha256:050ab978927fc721918c3284bdd8a81315ffb1ed660c6415f1196e79f2f6c80a
+      taskRef:
+        kind: Task
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: hub-repo
+    - name: git-clone-clusters-repo
+      params:
+        - name: url
+          value: "$(params.clusters_git_url)"
+        - name: revision
+          value: "$(params.clusters_git_revision)"
+        - name: deleteExisting
+          value: 'true'
+        - name: gitInitImage
+          value: >-
+            registry.redhat.io/openshift-pipelines/pipelines-git-init-rhel8@sha256:050ab978927fc721918c3284bdd8a81315ffb1ed660c6415f1196e79f2f6c80a
+      taskRef:
+        kind: Task
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: git-clusters-source
+    - name: copy-cluster-to-hub
+      params:
+        - name: source-dir
+          value: "$(params.clusters_folder_path)"
+        - name: destination-dir
+          value: "$(params.hub_clusters_path)"
+      taskRef:
+        kind: Task
+        name: copy-from-workspace
+      workspaces:
+        - name: source
+          workspace: git-clusters-source
+        - name: destination
+          workspace: hub-repo
+      runAfter:
+        - git-clone-hub-repo
+        - git-clone-clusters-repo
+    - name: push-to-repo
+      params:
+        - name: GIT_SCRIPT
+          value: |
+            git config --global user.name "redhat-testharness"
+            git config --global user.email "redhat-partner-solutions@redhat.com"
+            git config --global --add safe.directory /workspace/source
+            git checkout -B "$(params.destination_branch)"
+            git add $(params.hub_clusters_path)
+            git commit -m "Create cluster $(params.cluster_name) from pipeline"
+            git push origin $(params.destination_branch)
+      taskRef:
+        kind: ClusterTask
+        name: git-cli
+      workspaces:
+        - name: source
+          workspace: hub-repo
+      runAfter:
+        - copy-cluster-to-hub
+    - name: sync-cluster-argo-app
+      params:
+        - name: application-name
+          value: "$(params.cluster_name)-siteconfig"
+        - name: flags
+          value: --insecure
+      taskRef:
+        kind: Task
+        name: argocd-task-sync-and-wait
+      runAfter:
+        - push-to-repo
+  finally:
+    - name: gchat-final-notification
+      params:
+        - name: webhook-url
+          value: $(params.webhook_url)
+        - name: message
+          # yamllint disable-line rule:line-length
+          value: "Cluster deployment pipeline finished with status *$(tasks.status)*"
+      taskRef:
+        kind: Task
+        name: send-to-gchat-space
+      when:
+        - input: "$(tasks.status)"
+          operator: in
+          values: ["Completed", "Failed", "Succeeded"]
+  workspaces:
+    - name: git-clusters-source
+      optional: false
+    - name: hub-repo
+      optional: false
+  resources: []

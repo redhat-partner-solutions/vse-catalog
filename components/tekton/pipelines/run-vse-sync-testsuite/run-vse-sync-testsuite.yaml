@@ -1,0 +1,77 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: run-vse-sync-testsuite
+spec:
+  finally:
+    - name: send-report-to-gchat-space
+      params:
+        - name: webhook-url
+          value: >-
+            https://chat.googleapis.com/v1/spaces/AAAAiCQuo38/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=QjLrTKvtNWmxFlkce7kVXJu6pzzlLtACBo8I4xem-AU%3D
+        - name: success-message
+          value: All Tests passed
+        - name: failure-message
+          value: The following tests failed
+      taskRef:
+        kind: Task
+        name: send-report-to-gchat-space
+      workspaces:
+        - name: report
+          workspace: report
+  params:
+    - description: Name of target cluster's kubeconfig secret
+      name: kubeconfig-secret
+      type: string
+    - description: Namespace of target cluster's kubeconfig secret
+      name: kubeconfig-namespace
+      type: string
+    - description: Name kubeconfig secret in pipline namespace
+      name: kubeconfig-secret-dest
+      type: string
+  tasks:
+    - name: deploy-vse-sync-testsuite
+      params:
+        - name: test-image
+          value: 'quay.io/redhat-partner-solutions/vse-sync-testsuite:latest'
+        - name: config_volume
+          value: vse-sync-testsuite-config
+        - name: kubeconfig_secret
+          value: $(params.kubeconfig-secret-dest)
+        - name: kubeconfig_secret_dest_path
+          value: /usr/th/kubeconfig/
+        - name: report_path
+          value: /workspace/reports/vse-sync-testsuite.json
+      runAfter:
+        - copy-cluster-kubeconfig
+      taskRef:
+        kind: Task
+        name: deploy-vse-sync-testsuite
+      workspaces:
+        - name: report
+          workspace: report
+    - name: copy-cluster-kubeconfig
+      params:
+        - name: SCRIPT
+          value: |-
+
+            if ! oc get secret $(params.kubeconfig-secret-dest); then
+
+              oc extract -n $(params.kubeconfig-namespace) \
+                secrets/$(params.kubeconfig-secret) \
+                --to /tmp --confirm=True
+
+              oc create secret generic $(params.kubeconfig-secret-dest) \
+                --from-file=kubeconfig=/tmp/kubeconfig \
+                --from-file=raw-kubeconfig=/tmp/raw-kubeconfig \
+                --type=Opaque
+
+            fi
+        - name: VERSION
+          value: '4.12'
+      taskRef:
+        kind: Task
+        name: openshift-client
+  workspaces:
+    - name: report

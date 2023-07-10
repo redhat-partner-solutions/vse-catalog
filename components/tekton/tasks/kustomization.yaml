@@ -19,3 +19,8 @@ resources:
     - set-tag.yaml
     - deploy-gotests.yaml
     - deploy-ptp-gotests.yaml
+    - copy-from-workspace.yaml
+    - send-report-to-gchat.yaml
+    - deploy-vse-sync-testsuite.yaml
+    - argocd-task-sync-and-wait.yaml
+    - https://api.hub.tekton.dev/v1/resource/tekton/task/openshift-client/0.2/raw
