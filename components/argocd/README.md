@@ -6,6 +6,7 @@ The current *overlays* available are for the following versions:
 * [4.10](overlays/4.10)
 * [4.11](overlays/4.11)
 * [4.12](overlays/4.12)
+* [4.12](overlays/4.13)
 
 There is also a default included if you want to not have this ztp argocd patch included.
 * [default](overlays/default)
