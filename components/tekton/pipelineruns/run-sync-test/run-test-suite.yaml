@@ -1,0 +1,30 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: run-vse-sync-test-run
+  labels:
+    tekton.dev/pipeline: run-vse-sync-test
+spec:
+  serviceAccountName: pipeline-credentials-sa
+  # serviceAccountName: robot-docker-basic
+  params:
+    - name: kubeconfig-secret
+      value: falcon-admin-kubeconfig
+    - name: kubeconfig-namespace
+      value: falcon
+    - name: kubeconfig-secret-dest
+      value: falcon-admin-kubeconfig
+  pipelineRef:
+    name: run-vse-sync-test
+  workspaces:
+    - name: report
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 10Gi
+          storageClassName: ocs-storagecluster-ceph-rbd
+          volumeMode: Filesystem
