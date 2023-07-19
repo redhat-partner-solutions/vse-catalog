@@ -14,6 +14,11 @@ spec:
     - description: Name kubeconfig secret in pipline namespace
       name: kubeconfig-secret-dest
       type: string
+    - description: gChat URL
+      name: webhook_url
+      type: string
+      # yamllint disable-line rule:line-length
+      default: "https://chat.googleapis.com/v1/spaces/AAAAiCQuo38/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=QjLrTKvtNWmxFlkce7kVXJu6pzzlLtACBo8I4xem-AU"
   tasks:
     - name: copy-cluster-kubeconfig
       params:
@@ -40,7 +45,7 @@ spec:
     - name: deploy-vse-sync-test
       params:
         - name: test-image
-          value: 'quay.io/redhat-partner-solutions/vse-sync-test:latest'
+          value: 'quay.io/redhat-partner-solutions/vse-sync-test:0.0.2'
         - name: kubeconfig_secret
           value: $(params.kubeconfig-secret-dest)
         - name: kubeconfig_secret_dest_path
@@ -55,21 +60,20 @@ spec:
       workspaces:
         - name: report
           workspace: report
-  # finally:
-  #   - name: send-report-to-gchat-space
-  #     params:
-  #       - name: webhook-url
-  #         value: >-
-  #           https://chat.googleapis.com/v1/spaces/AAAAiCQuo38/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=QjLrTKvtNWmxFlkce7kVXJu6pzzlLtACBo8I4xem-AU%3D
-  #       - name: success-message
-  #         value: All Tests passed
-  #       - name: failure-message
-  #         value: The following tests failed
-  #     taskRef:
-  #       kind: Task
-  #       name: send-report-to-gchat-space
-  #     workspaces:
-  #       - name: report
-  #         workspace: report
+  finally:
+    - name: gchat-final-notification
+      params:
+        - name: webhook-url
+          value: $(params.webhook_url)
+        - name: message
+          # yamllint disable-line rule:line-length
+          value: "*PTP tests suite results* - $(tasks.deploy-vse-sync-test.results.ptp-test-result)"
+      taskRef:
+        kind: Task
+        name: send-to-gchat-space
+      when:
+        - input: "$(tasks.status)"
+          operator: in
+          values: ["Completed", "Failed", "Succeeded"]
   workspaces:
     - name: report
