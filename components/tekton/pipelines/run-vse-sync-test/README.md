@@ -1,6 +1,6 @@
 # Run-vse-sync-testsuite
 
-The `run-vse-sync-testsuite` base pipeline runs a the vse sync testsuite from
+The `run-vse-sync-testsuite` base pipeline runs a the vse sync test from
 a released container image containing the test suites.
 
 ## Install 

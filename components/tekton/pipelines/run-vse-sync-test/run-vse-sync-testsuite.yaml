@@ -44,8 +44,6 @@ spec:
         name: openshift-client
     - name: deploy-vse-sync-test
       params:
-        - name: test-image
-          value: 'quay.io/redhat-partner-solutions/vse-sync-test:0.0.2'
         - name: kubeconfig_secret
           value: $(params.kubeconfig-secret-dest)
         - name: kubeconfig_secret_dest_path
