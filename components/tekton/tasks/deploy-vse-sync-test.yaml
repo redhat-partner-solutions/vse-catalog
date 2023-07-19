@@ -32,7 +32,7 @@ spec:
       name: run-ptp-suite
       script: |
         #!/bin/sh
-        
+
         set -e
         ./vse-sync-test/hack/e2e.sh \
           -k /usr/vse/kubeconfig/kubeconfig \
