@@ -17,14 +17,3 @@ spec:
       value: falcon-admin-kubeconfig
   pipelineRef:
     name: run-vse-sync-test
-  workspaces:
-    - name: report
-      volumeClaimTemplate:
-        spec:
-          accessModes:
-            - ReadWriteOnce
-          resources:
-            requests:
-              storage: 10Gi
-          storageClassName: ocs-storagecluster-ceph-rbd
-          volumeMode: Filesystem

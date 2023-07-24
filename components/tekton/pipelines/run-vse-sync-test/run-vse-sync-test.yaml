@@ -48,16 +48,11 @@ spec:
           value: $(params.kubeconfig-secret-dest)
         - name: kubeconfig_secret_dest_path
           value: /usr/vse//kubeconfig
-        - name: report_path
-          value: /workspace/reports/vse-sync-testsuite.json
       runAfter:
         - copy-cluster-kubeconfig
       taskRef:
         kind: Task
         name: deploy-vse-sync-test
-      workspaces:
-        - name: report
-          workspace: report
   finally:
     - name: gchat-final-notification
       params:
@@ -73,5 +68,3 @@ spec:
         - input: "$(tasks.status)"
           operator: in
           values: ["Completed", "Failed", "Succeeded"]
-  workspaces:
-    - name: report

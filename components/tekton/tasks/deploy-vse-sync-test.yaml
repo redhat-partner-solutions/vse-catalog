@@ -19,11 +19,6 @@ spec:
         Path that the kubeconfig will be mounted into
       name: kubeconfig_secret_dest_path
       type: string
-    - default: /workspace/reports/vse-sync-testsuite.json
-      description: |
-        Path of test results report
-      name: report_path
-      type: string
   results:
     - name: ptp-test-result
       description: ptp test output result
@@ -45,6 +40,3 @@ spec:
     - name: kubeconfig-secret
       secret:
         secretName: $(params.kubeconfig_secret)
-  workspaces:
-    - mountPath: /workspace/reports
-      name: report
