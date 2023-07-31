@@ -1,0 +1,42 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  annotations:
+    tekton.dev/categories: Testing
+    tekton.dev/displayName: vse-framework
+    tekton.dev/tags: 'golang, vse-sync-testsuite'
+  name: deploy-vse-sync-test
+spec:
+  description: This task runs the vse-sync-testsuite image.
+  params:
+    - description: |
+        The tag for the image you want to run
+      name: kubeconfig_secret
+      type: string
+    - default: /usr/vse/kubeconfig
+      description: |
+        Path that the kubeconfig will be mounted into
+      name: kubeconfig_secret_dest_path
+      type: string
+  results:
+    - name: ptp-test-result
+      description: ptp test output result
+  steps:
+    - image: 'quay.io/redhat-partner-solutions/vse-sync-test:0.0.3'
+      name: run-ptp-suite
+      script: |
+        #!/bin/sh
+
+        set -e
+        ./vse-sync-test/hack/e2e.sh \
+          -k /usr/vse/kubeconfig/kubeconfig \
+          -d 1250 | tee >(sed 's/"/\\"/g' > $(results.ptp-test-result.path))
+
+      volumeMounts:
+        - mountPath: $(params.kubeconfig_secret_dest_path)
+          name: kubeconfig-secret
+  volumes:
+    - name: kubeconfig-secret
+      secret:
+        secretName: $(params.kubeconfig_secret)
