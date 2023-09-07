@@ -11,4 +11,4 @@ patches:
     patch: |-
       - op: replace
         path: /spec/repo/initContainers/0/image
-        value: quay.io/openshift-kni/ztp-site-generator:4.11.0
+        value: registry.redhat.io/openshift4/ztp-site-generate-rhel8:v4.11
